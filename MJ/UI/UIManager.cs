@@ -56,7 +56,7 @@ namespace MJ
                     newCard.gameObject.name = "Card_" + (i + 1);
                     AddChild(handCardParent, newCard);
                     newCard.Init(cardlist[i]);
-                    newCard.SetLbl2((i+1).ToString());
+                    //newCard.SetLbl2((i+1).ToString());
                     handCardList.Add(newCard);
                 }
                 else
