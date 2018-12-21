@@ -1,7 +1,9 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using MyEvent;
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.UI;
 
 namespace MJ
@@ -12,10 +14,10 @@ namespace MJ
         private CardComponent cardPrefab;
 
         [SerializeField]
-        private Transform handCardParent;
+        private List<Transform> handCardParents;
 
         [SerializeField]
-        private Transform getCardParent;
+        private List<Transform> tableCardParents;//0-self 1-left 2-front 3-right
 
         //
         [SerializeField]
@@ -29,74 +31,163 @@ namespace MJ
 
         private List<CardComponent> debugYamaCardList; 
         //
+        private int playerNum = 4;
 
+        private List<List<CardComponent>> handCardList;
+        private List<int> handCardNums;
+        private List<CardComponent> drawCard;
 
-        private List<CardComponent> handCardList;
-        private CardComponent drawCard;
+        private int[] xIncs = new[] {50, 50, 50, 50};
 
-
-        // Use this for initialization
-        void Start()
+        void Awake()
         {
-            handCardList = new List<CardComponent>();
-            debugYamaCardList = new List<CardComponent>();
         }
 
-        public void ResetHand(List<Card> cardlist)
+        void Start()
         {
-            if (cardlist.Count > Define.HAND_CARD_NUM)
+            RegisterEvents();
+        }
+
+        void OnDestroy()
+        {
+            UnRegisterEvents();
+        }
+
+        private void RegisterEvents()
+        {
+            MyEventSystem.RegistEvent(CardEvent.PLAY_CARD, OnPlayCardHandler);
+            MyEventSystem.RegistEvent(CardEvent.UI_UPDATE_DRAW_CARD, OnUpdateDrawCardHandler);
+            MyEventSystem.RegistEvent(CardEvent.UI_UPDATE_HAND_CARD, OnUpdateHandCardsHandler);
+        }
+
+        private void UnRegisterEvents()
+        {
+            MyEventSystem.UnRegistEvent(CardEvent.PLAY_CARD, OnPlayCardHandler);
+            MyEventSystem.UnRegistEvent(CardEvent.UI_UPDATE_DRAW_CARD, OnUpdateDrawCardHandler);
+            MyEventSystem.UnRegistEvent(CardEvent.UI_UPDATE_HAND_CARD, OnUpdateHandCardsHandler);
+        }
+
+        public void Reset(int p)
+        {
+            this.playerNum = p;
+
+            handCardList = new List<List<CardComponent>>();
+            handCardNums = new List<int>();
+            for (int i = 0; i < playerNum; i++)
             {
-                Debug.LogError("??? too many card " + cardlist.Count);
+                handCardList.Add(new List<CardComponent>());
+                handCardNums.Add(0);
             }
-            for (int i = 0; i < cardlist.Count; i++)
+            drawCard = new List<CardComponent>();
+            for (int i = 0; i < playerNum; i++)
             {
-                if (i >= handCardList.Count)
+                drawCard.Add(null);
+            }
+
+            debugYamaCardList = new List<CardComponent>();
+            foreach (var parent in tableCardParents)
+            {
+                Utils.DestroyChildren(parent);
+            }
+        }
+
+        public void UpdatePlayerNaki()
+        {
+            
+        }
+
+        public void UpdateTableCard(int currentPlayer, Card card)
+        {
+            var p = tableCardParents[currentPlayer];
+            var c = Instantiate(cardPrefab);
+            c.Init(card);
+            Utils.AddChild(p,c);
+
+        }
+
+        public void ShowDrawCard(int i, Card c)
+        {
+            if (drawCard[i] == null)
+            {
+                drawCard[i] = Instantiate(cardPrefab);
+                Utils.AddChild(handCardParents[i], drawCard[i]);
+                var x = handCardNums[i] * xIncs[i] + 10;
+                Utils.SetX(drawCard[i],x);
+            }
+            drawCard[i].Init(c);
+            drawCard[i].SetActive(true);
+        }
+
+
+        private void OnPlayCardHandler(MyEvent.MyEvent obj)
+        {
+            var data = (obj as CardEvent).data as CardEvent.CardData;
+            UpdateTableCard(data.index, data.cards[0]);
+        }
+
+        private void OnUpdateHandCardsHandler(MyEvent.MyEvent obj)
+        {
+            var data = (obj as CardEvent).data as CardEvent.CardData;
+            UpdateHandCards(data.index, data.cards);
+        }
+
+        private void UpdateHandCards(int index, List<Card> clist)
+        {
+            if (clist.Count > Define.HAND_CARD_NUM)
+            {
+                Debug.LogError("??? too many card " + clist.Count);
+            }
+            var hand = handCardList[index];
+            handCardNums[index] = clist.Count;
+            for (int i = 0; i < clist.Count; i++)
+            {
+                if (i >= hand.Count)
                 {
                     var newCard = Instantiate(cardPrefab);
                     newCard.gameObject.name = "Card_" + (i + 1);
-                    AddChild(handCardParent, newCard);
-                    newCard.Init(cardlist[i]);
+                    Utils.AddChild(handCardParents[index], newCard);
+                    Utils.SetX(newCard, i * xIncs[index]);
+                    newCard.Init(clist[i]);
                     //newCard.SetLbl2((i+1).ToString());
-                    handCardList.Add(newCard);
+                    hand.Add(newCard);
                 }
                 else
                 {
-                    var card = handCardList[i];
-                    card.Init(cardlist[i]);
+                    var card = hand[i];
+                    card.Init(clist[i]);
                     card.SetActive(true);
                 }
             }
-            for (int i = cardlist.Count; i < Define.HAND_CARD_NUM; i++)
+            for (int i = clist.Count; i < Define.HAND_CARD_NUM; i++)
             {
-                if (i < handCardList.Count)
+                if (i < hand.Count)
                 {
-                    handCardList[i].SetActive(false);
+                    hand[i].SetActive(false);
                 }
             }
-            if (drawCard != null)
+            if (index<drawCard.Count && drawCard[index] != null)
             {
-                drawCard.SetActive(false);
+                drawCard[index].SetActive(false);
             }
 
         }
 
-        public void ShowDrawCard(Card card)
+        private void OnUpdateDrawCardHandler(MyEvent.MyEvent obj)
         {
-            if (drawCard == null)
+            var evt = obj as CardEvent;
+            var data = evt.data as CardEvent.CardData;
+            var index = data.index;
+            var card = data.cards[0];
+            if (index == 0)
             {
-                drawCard = Instantiate(cardPrefab);
-                AddChild(getCardParent, drawCard);
+                ShowDrawCard(index, card);
             }
-            drawCard.Init(card);
-            drawCard.SetActive(true);
+            else
+            {
+                //todo
+            }
         }
 
-        private void AddChild(Transform parent, MonoBehaviour child)
-        {
-            child.transform.SetParent(parent);
-            child.transform.localPosition = Vector3.zero;
-            child.transform.localScale = Vector3.one;
-        }
 
         public void DebugHand(string getCardArrayStr)
         {
@@ -119,7 +210,7 @@ namespace MJ
                     var newCard = Instantiate(cardPrefab);
                     newCard.Init(cardList[i]);
                     newCard.gameObject.name = "YamaCard_" + i;
-                    AddChild(debugYama, newCard);
+                    Utils.AddChild(debugYama, newCard);
                     debugYamaCardList.Add(newCard);
                 }
                 else

@@ -5,11 +5,11 @@ namespace MJ
 {
     public class Card
     {
-        public int index;
-        public int cindex;
-        public string cName;
-        public int cNumber;
-        public CardType cType;
+        public int index { get; private set; }
+        public int cindex { get; private set; }
+        public string cName { get; private set; }
+        public int cNumber { get; private set; }
+        public CardType cType { get; private set; }
         public bool Yao { get; private set; }
         public bool SanGen { get; private set; }
         public bool SiShi { get; private set; }
@@ -100,8 +100,17 @@ namespace MJ
 
     public class CardFactory
     {
-        public static List<Card> GenerateCardDeck()
+        private static Dictionary<int,List<Card>> CardListDic; 
+        public static List<Card> GenerateCardDeck(int playerNum)
         {
+            if (CardListDic == null)
+            {
+                CardListDic = new Dictionary<int, List<Card>>();
+            }
+            if (CardListDic.ContainsKey(playerNum))
+            {
+                return CardListDic[playerNum];
+            }
             var list = new List<Card>();
             for (int j = 0; j < 9; j++)
             {
@@ -131,6 +140,7 @@ namespace MJ
                     list.Add(new Card(list.Count + 1, CardType.Zi, j + 1));
                 }
             }
+            CardListDic.Add(playerNum, list);
             return list;
         }
     }

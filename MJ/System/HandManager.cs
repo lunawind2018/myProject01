@@ -15,24 +15,31 @@ namespace MJ
 
         private List<Naki> nakiCardList = new List<Naki>();
 
+        private List<Card> playCardList = new List<Card>();
+
         private int[] cardArray;
 
         private Card lastCard;
 
 
-        public HandManager()
+        public HandManager(int i)
         {
+            index = i;
             cardArray = new int[Define.C_ARR_MAX];
+            chiDic = new Dictionary<int, int>();
         }
 
         public Card Think()
         {
-            return cardList[0];
+            var result = cardList[0];
+            return result;
         }
+
 
         public void Reset()
         {
             cardList.Clear();
+            playCardList.Clear();
             for (int i = 0; i < cardArray.Length; i++)
             {
                 cardArray[i] = 0;
@@ -50,27 +57,24 @@ namespace MJ
             cardList.Insert(i, c);
             cardArray[c.cindex]++;
             lastCard = c;
-            Debug.Log("===[hand] add card " + i + "/" + cardList.Count + " " + c.cName + " " + c.index);
-            MyEventSystem.SendEvent(new CardEvent(CardEvent.CARD_ADD, this));
+            //Debug.Log("===[hand] add card " + i + "/" + cardList.Count + " " + c.cName + " " + c.index);
         }
 
-        public void PlayCard(Card c)
+        public Card PlayCard(Card c = null)
         {
+            if (c == null) c = lastCard;
             int i = cardList.IndexOf(c);
             if (i < 0)
             {
                 Debug.LogError("??? no card in hand: " + c.index + " " + c.cName);
                 i = 0;
             }
-//            int l = cardList.Count;
-//            for (i = 0; i < l; i++)
-//            {
-//                if (cardList[i].index == c.index) break;
-//            }
-
             cardList.RemoveAt(i);
             cardArray[c.cindex]--;
-            Debug.Log("===[hand] play card " + i + " " + c.cName);
+            playCardList.Add(c);
+            MyEventSystem.SendEvent(new CardEvent(CardEvent.PLAY_CARD, new CardEvent.CardData(this.index, c)));
+            MyEventSystem.SendEvent(new CardEvent(CardEvent.UI_UPDATE_HAND_CARD, new CardEvent.CardData(this.index, cardList)));
+            return c;
         }
 
         private int GetCardNum()
@@ -91,6 +95,11 @@ namespace MJ
         public List<Card> GetHandCardList()
         {
             return cardList;
+        }
+
+        public List<Card> GetPlayCardList()
+        {
+            return playCardList;
         }
 
         public int[] GetCardArray()
@@ -122,6 +131,76 @@ namespace MJ
             }
             return sb.ToString();
         }
+        //
+        private Dictionary<int, int> chiDic;
+
+        public int CheckNaki(Card card, bool canChi)
+        {
+            chiDic.Clear();
+            int result = 0;
+            var carr = cardArray;
+            var cindex = card.cindex;
+            if (carr[cindex] == 3)
+            {
+                //kang
+                result |= 4;
+                Debug.Log("Kang");
+            }
+            else if (carr[cindex] == 2)
+            {
+                //peng
+                result |= 2;
+                Debug.Log("Peng");
+            }
+            if (canChi)
+            {
+                //chi
+                var a = cindex >= 2 ? carr[cindex - 2] : 0;
+                var b = cindex >= 1 ? carr[cindex - 1] : 0;
+                var c = cindex <= 27 ? carr[cindex + 1] : 0;
+                var d = cindex <= 26 ? carr[cindex + 2] : 0;
+                if (a > 0 && b > 0)
+                {
+                    //12+3
+                    chiDic.Add(cindex - 2, cindex - 1);
+                    chiDic.Add(cindex - 1, cindex - 2);
+                    Debug.Log((cindex - 2) + " " + (cindex - 1));
+                }
+                if (c > 0 && d > 0)
+                {
+                    //45+3
+                    chiDic.Add(cindex + 2, cindex + 1);
+                    chiDic.Add(cindex + 1, cindex + 2);
+                    Debug.Log((cindex + 2) + " " + (cindex + 1));
+                }
+                if (b > 0 && c > 0)
+                {
+                    //24+3
+                    SafeAdd(chiDic, cindex - 1, cindex + 1);
+                    SafeAdd(chiDic, cindex + 1, cindex - 1);
+                    Debug.Log((cindex - 1) + " " + (cindex + 1));
+                }
+                if (chiDic.Count > 0)
+                {
+                    result |= 1;
+                    Debug.Log("Chi " + System.Convert.ToString(result, 2));
+                }
+            }
+            return result;
+        }
+        private void SafeAdd<T, K>(Dictionary<T, K> dic, T k, K v)
+        {
+            if (dic.ContainsKey(k))
+            {
+                dic[k] = v;
+            }
+            else
+            {
+                dic.Add(k, v);
+            }
+        }
+
+
 
     }
 

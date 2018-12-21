@@ -17,9 +17,10 @@ namespace MJ
 
 
         private List<Card> yamaCardList = new List<Card>();
-        public void Reset()
+        public void Reset(int playerNum)
         {
-            yamaCardList = CardFactory.GenerateCardDeck();
+            yamaCardList.Clear();
+            yamaCardList = CardFactory.GenerateCardDeck(playerNum);
             Suffle();
         }
 
@@ -44,7 +45,7 @@ namespace MJ
             }
             var card = yamaCardList[0];
             yamaCardList.RemoveAt(0);
-            Debug.Log("===[yama] draw card :" + card.cName + " , left:" + yamaCardList.Count);
+            //Debug.Log("===[yama] draw card :" + card.cName + " , left:" + yamaCardList.Count);
             return card;
         }
 

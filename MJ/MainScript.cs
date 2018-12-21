@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using MyEvent;
@@ -36,14 +37,13 @@ namespace MJ
         //
         private int gameStatus;//0-gameover 1-start 2-play 3-wait
         //
-        private Card currentCard;
+//        private Card currentCard;
         //
         private Card currentPlayCard;
-        //
-        private Dictionary<int, int> chiDic;
 
         public string DebugString;
 
+        private GameManager gameManager;
 
         public void Test()
         {
@@ -63,7 +63,7 @@ namespace MJ
                 if (i == Define.HAND_CARD_NUM - 1) UpdateUI();
                 if (i == Define.HAND_CARD_NUM)
                 {
-                    uiManager.ShowDrawCard(card);
+                    uiManager.ShowDrawCard(0, card);
                     UpdateDebugUI();
                 }
             }
@@ -72,12 +72,11 @@ namespace MJ
 
         void Awake()
         {
-            chiDic = new Dictionary<int, int>();
             yamaManager = YamaManager.Instance;
-            handManagers = new HandManager[4];
-            for (int i = 0; i < 4; i++)
+            handManagers = new HandManager[PlayerNum];
+            for (int i = 0; i < PlayerNum; i++)
             {
-                handManagers[i] = new HandManager();//0-self 1-right 2-front 3-left
+                handManagers[i] = new HandManager(i);//0-self 1-right 2-front 3-left
             }
             handManager = handManagers[0];
             gameStatus = GAME_OVER;
@@ -108,11 +107,14 @@ namespace MJ
         public void Reset()
         {
             Debug.Log("===reset");
-            yamaManager.Reset();
-            handManager.Reset();
+            yamaManager.Reset(PlayerNum);
+            for (int i = 0; i < PlayerNum; i++)
+            {
+                handManagers[i].Reset();
+            }
+            uiManager.Reset(PlayerNum);
 
         }
-
 
 
         private void RegistEvents()
@@ -128,12 +130,7 @@ namespace MJ
         public void GameStart()
         {
             Debug.Log("===draw first cards");
-            for (int i = 0; i < Define.HAND_CARD_NUM; i++)
-            {
-                var card = yamaManager.DrawCard();
-                handManager.AddCard(card);
-            }
-            for (int j = 1; j < PlayerNum; j++)
+            for (int j = 0; j < PlayerNum; j++)
             {
                 for (int i = 0; i < Define.HAND_CARD_NUM; i++)
                 {
@@ -147,17 +144,53 @@ namespace MJ
 
         private void UpdateUI()
         {
-            uiManager.ResetHand(handManager.GetHandCardList());
+            //uiManager.UpdatePlayerHand(handManager.GetHandCardList());
+            for (int i = 0; i < PlayerNum; i++)
+            {
+                MyEventSystem.SendEvent(new CardEvent(CardEvent.UI_UPDATE_HAND_CARD, new CardEvent.CardData(i,handManagers[i].GetHandCardList())));
+            }
             UpdateDebugUI();
         }
 
-        public void PlayerDrawSingleCard()
+        public void DrawSingleCard()
         {
-            currentCard = yamaManager.DrawCard();
-            handManager.AddCard(currentCard);
-            uiManager.ShowDrawCard(currentCard);
-            UpdateDebugUI();
-            CheckKang();
+            var c = yamaManager.DrawCard();
+            handManagers[currentPlayer].AddCard(c);
+            Debug.Log("draw single card: player " + currentPlayer + " card " + c.cName);
+            SendDrawCardEvent(c);
+        }
+
+        private void SendDrawCardEvent(Card currcard)
+        {
+            MyEventSystem.SendEvent(new CardEvent(CardEvent.UI_UPDATE_DRAW_CARD, new CardEvent.CardData(currentPlayer, currcard)));
+        }
+
+        public void PlayCard(Card c = null)
+        {
+            var card = handManagers[currentPlayer].PlayCard(c);
+            Debug.Log("player " + currentPlayer + " plays " + card.cName);
+
+            var nakiCode = 0;
+            for (int i = 0; i < PlayerNum; i++)
+            {
+                if (i == currentPlayer) continue;
+                var canChi = currentPlayer == i + 1 || currentPlayer == i - 3;
+                var naki = handManagers[i].CheckNaki(card, canChi);
+                if (naki > 0)
+                {
+                    Debug.Log("player "+i+" cannaki");
+                    nakiCode |= (naki << (3 * i));
+                }
+            }
+            Debug.Log("cannaki: " + Convert.ToString(nakiCode, 2));
+            if (nakiCode > 0)
+            {
+                gameStatus = GAME_WAIT;
+            }
+            else
+            {
+                NextPlayer();
+            }
         }
 
         private void UpdateDebugUI()
@@ -168,11 +201,29 @@ namespace MJ
             uiManager.DebugYama(yamaManager.GetYamaCardList());
         }
 
-        public void PlayCard(Card card)
+        public void OnClickChiButton()
         {
-            if (card == null) Debug.LogError("???");
-            handManager.PlayCard(card);
-            UpdateUI();
+            Debug.Log("Chi");
+        }
+
+        public void OnClickPengButton()
+        {
+            Debug.Log("Peng");
+        }
+
+        public void OnClickGangButton()
+        {
+            Debug.Log("Gang");
+        }
+
+        public void OnClickReachButton()
+        {
+            Debug.Log("Reach");
+        }
+
+        public void OnClickRongButton()
+        {
+            Debug.Log("Rong");
         }
 
         private void OnClickCardHandler(MyEvent.MyEvent evt)
@@ -194,16 +245,16 @@ namespace MJ
                         PlayCard(c);
                     }
                 }
-                else if (handManager.CanDrawCard())
-                {
-                    //click yama card
-                    currentCard = c;
-                    yamaManager.DebugDraw(c);
-                    handManager.AddCard(c);
-                    uiManager.DebugYama(yamaManager.GetYamaCardList());
-                    uiManager.ShowDrawCard(c);
-                    UpdateDebugUI();
-                }
+//                else if (ShowDebug && yamaManager.GetYamaCardList().Contains(c) && handManager.CanDrawCard())
+//                {
+//                    //click yama card
+//                    currentCard = c;
+//                    yamaManager.DebugDraw(c);
+//                    handManager.AddCard(c);
+//                    uiManager.DebugYama(yamaManager.GetYamaCardList());
+//                    uiManager.ShowDrawCard(c);
+//                    UpdateDebugUI();
+//                }
             }
         }
 
@@ -233,80 +284,20 @@ namespace MJ
 
         private bool CheckKang()
         {
-            var carr = handManager.GetCardArray();
-            var cindex = this.currentCard.cindex;
-            if (carr[cindex] == 3)
-            {
-                return true;
-            }
+//            var carr = handManager.GetCardArray();
+//            var cindex = this.currentCard.cindex;
+//            if (carr[cindex] == 3)
+//            {
+//                return true;
+//            }
             return false;
         }
-        private int CheckNaki()
-        {
-            int result = 0;
-            var carr = handManager.GetCardArray();
-            var cindex = this.currentPlayCard.cindex;
-            if (carr[cindex] == 3)
-            {
-                //kang
-                result &= 4;
-                Debug.Log("Kang");
-            }
-            else if (carr[cindex] == 2)
-            {
-                //peng
-                result &= 2;
-                Debug.Log("Peng");
-            }
-            {
-                //chi
-                var a = cindex >= 2 ? carr[cindex - 2] : 0;
-                var b = cindex >= 1 ? carr[cindex - 1] : 0;
-                var c = cindex <= 27 ? carr[cindex + 1] : 0;
-                var d = cindex <= 26 ? carr[cindex + 2] : 0;
-                if (a > 0 && b > 0)
-                {
-                    //12+3
-                    chiDic.Add(a, b);
-                    chiDic.Add(b, a);
-                }
-                if (c > 0 && d > 0)
-                {
-                    //45+3
-                    chiDic.Add(d, c);
-                    chiDic.Add(c, d);
-                }
-                if (b > 0 && c > 0)
-                {
-                    //24+3
-                    SafeAdd(chiDic, b, c);
-                    SafeAdd(chiDic, c, b);
-                }
-                if (chiDic.Count > 0)
-                {
-                    result &= 1;
-                    Debug.Log("Chi");
-                }
-            }
-            return result;
-        }
 
-        private void SafeAdd(Dictionary<int, int> dic, int k, int v)
-        {
-            if (dic.ContainsKey(k))
-            {
-                dic[k] = v;
-            }
-            else
-            {
-                dic.Add(k,v);
-            }
-        }
 
         private void NextPlayer()
         {
-            currentPlayer++;
-            if (currentPlayer >= 4) currentPlayer = 0;
+            currentPlayer--;
+            if (currentPlayer < 0) currentPlayer += PlayerNum;
         }
 
         void Update()
@@ -328,20 +319,7 @@ namespace MJ
                         //npc think
                         if (c != null)
                         {
-                            //npc play
-                            handManagers[currentPlayer].PlayCard(c);
-                            //check naki
-                            var naki = CheckNaki();
-                            //wait
-                            if (naki > 0)
-                            {
-                                gameStatus = GAME_WAIT;
-                                currentPlayCard = c;
-                            }
-                            else//no naki
-                            {
-                                NextPlayer();
-                            }
+                            PlayCard(c);
                         }
                     }
                 }
@@ -357,7 +335,6 @@ namespace MJ
                 {
                     case GAME_OVER:
                         Reset();
-
                         gameStatus = GAME_START;
                         break;
                     case GAME_START:
@@ -365,13 +342,16 @@ namespace MJ
                         gameStatus = GAME_PLAY;
                         break;
                     case GAME_PLAY:
-                        if (handManager.CanDrawCard())
+                        if (currentPlayer == 0)
                         {
-                            PlayerDrawSingleCard();
-                        }
-                        else
-                        {
-                            PlayCard(currentCard);
+                            if (handManager.CanDrawCard())
+                            {
+                                DrawSingleCard();
+                            }
+                            else
+                            {
+                                PlayCard();
+                            }
                         }
                         break;
                     default:
