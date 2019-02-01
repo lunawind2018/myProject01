@@ -9,6 +9,9 @@ namespace WS
         public bool test = false;
         public int testid = 1;
 
+        public int world_x = 0;
+        public int world_y = 0;
+
         public MasterDataFieldObject data { get; private set; }
 
         protected override void Awake()
@@ -27,6 +30,11 @@ namespace WS
         public void Init(int id)
         {
             this.data = MasterDataManager.Instance.masterDataFieldObjectDic[id];
+            this.nameTxt.text = data.name;
+            if (!string.IsNullOrEmpty(data.param3))
+            {
+                this.nameTxt.color = Utils.GetColor(data.param3);
+            }
         }
     }
 }

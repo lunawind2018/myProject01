@@ -17,7 +17,7 @@ namespace WS
         }
 
         protected GameObject circleObject;
-        protected Text circleText;
+        protected Image circleImg;
 
         protected CircleState currState;
 
@@ -25,8 +25,12 @@ namespace WS
         {
             base.Awake();
             circleObject = transform.Find("Circle").gameObject;
-            if (circleObject == null) Debug.LogError("===error:no UICircle: " + this.gameObject.name);
-            circleText = circleObject.GetComponent<Text>();
+            if (circleObject == null)
+            {
+                Debug.LogError("===error:no UICircle: " + this.gameObject.name);
+                return;
+            }
+            circleImg = circleObject.GetComponent<Image>();
             circleObject.SetActive(false);
             SetCircleState(CircleState.None);
         }
@@ -41,10 +45,10 @@ namespace WS
                 case CircleState.None:
                     break;
                 case CircleState.Touched:
-                    circleText.color = Color.gray;
+                    circleImg.color = Color.gray;
                     break;
                 case CircleState.Selected:
-                    circleText.color = Color.yellow;
+                    circleImg.color = Color.yellow;
                     break;
                 case CircleState.Disabled:
                     break;

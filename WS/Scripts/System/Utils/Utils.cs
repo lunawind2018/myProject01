@@ -6,8 +6,21 @@ using UnityEngine;
 
 namespace WS
 {
-    public class Utils
+    public partial class Utils
     {
+
+        public static ResourceType GetResourceType(string str)
+        {
+            switch (str)
+            {
+                case "wood":
+                    return ResourceType.Wood;
+                case "stone":
+                    return ResourceType.Stone;
+            }
+            return ResourceType.None;
+        }
+
         public static K SafeGet<T, K>(Dictionary<T, K> dic, T key, K def)
         {
             return dic.ContainsKey(key) ? dic[key] : def;
@@ -303,5 +316,16 @@ namespace WS
 
             return foundCount;
         }
+
+        private static Dictionary<string,Color> colorDic = new Dictionary<string, Color>();
+        public static Color GetColor(string colorstr)
+        {
+            if (colorDic.ContainsKey(colorstr)) return colorDic[colorstr];
+            Color color;
+            ColorUtility.TryParseHtmlString("#" + colorstr + "FF", out color);
+            colorDic.Add(colorstr, color);
+            return color;
+        }
+        
     }
 }
