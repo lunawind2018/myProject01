@@ -1,15 +1,16 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
-public class SingleMessage : MonoBehaviour
+namespace WS
 {
-    [SerializeField]
-    private Text uiText;
-
-    public void SetText(string txt)
+    public class SingleMessage : MonoBehaviour
     {
-        uiText.text = txt;
+        [SerializeField]
+        private Text uiText;
+
+        public void SetText(string txt)
+        {
+            uiText.text = txt;
+        }
     }
 }

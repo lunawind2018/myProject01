@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -46,33 +48,48 @@ namespace WS
                     NewSaveData();
                 }
             }
-            
+            yield return 0;
+
         }
 
+        private const string KEY_PLAYER_DATA = "player_data";
+        private const string KEY_ITEM_Data = "item_data";
 
-        public PlayerData playerData { get; private set; }
+        public Hashtable dataHash;
         private void LoadFromData(byte[] data)
         {
-            var dataHash = MyMsgPacker.Unpack(data) as Hashtable;
-            playerData = new PlayerData();
-            playerData.FromHashTable(dataHash["player_data"]as Hashtable);
+//            try
+//            {
+                dataHash = MyMsgPacker.Unpack(data) as Hashtable;
+                PlayerManager.Instance.SetPlayerData(dataHash[KEY_PLAYER_DATA] as Hashtable);
+//            }
+//            catch (Exception e)
+//            {
+//                Debug.LogError("load error " + e.Message);
+//            }
         }
 
         private void NewSaveData()
         {
-            playerData = new PlayerData();
-            playerData.CreateNew();
+            PlayerManager.Instance.CreateNew();
             SaveSaveData();
         }
 
-        public void SaveSaveData()
+        public void SaveSaveData(System.Action callback = null)
         {
-            var savedatahash = new Hashtable();
-            savedatahash.Add("player_data",playerData.ToHashtable());
-            var databytes = MyMsgPacker.Pack(savedatahash);
-            File.WriteAllBytes(SaveFilePath,databytes);
-            Debug.Log("===save " + SaveFilePath);
+            GameManager.Instance.StartCoroutine(SaveDataCo(callback));
+
         }
 
+        private IEnumerator SaveDataCo(System.Action callback)
+        {
+            var savedatahash = new Hashtable();
+            savedatahash.Add(KEY_PLAYER_DATA, PlayerManager.Instance.GetPlayerDataHash());
+            var databytes = MyMsgPacker.Pack(savedatahash);
+            File.WriteAllBytes(SaveFilePath, databytes);
+            Debug.Log("===save " + SaveFilePath);
+            yield return 0;
+            if (callback != null) callback.Invoke();
+        }
     }
 }

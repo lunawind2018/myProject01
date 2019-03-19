@@ -29,7 +29,7 @@ namespace MJ
         [SerializeField]
         private Transform debugYama;
 
-        private List<CardComponent> debugYamaCardList; 
+        //private List<CardComponent> debugYamaCardList; 
         //
         private int playerNum = 4;
 
@@ -84,7 +84,7 @@ namespace MJ
                 drawCard.Add(null);
             }
 
-            debugYamaCardList = new List<CardComponent>();
+            //debugYamaCardList = new List<CardComponent>();
             foreach (var parent in tableCardParents)
             {
                 Utils.DestroyChildren(parent);
@@ -202,28 +202,28 @@ namespace MJ
         public void DebugYama(List<Card> cardList)
         {
             return;
-            var l = Mathf.Min(30, cardList.Count);
-            for (int i = 0; i < l; i++)
-            {
-                if (i >= debugYamaCardList.Count)
-                {
-                    var newCard = Instantiate(cardPrefab);
-                    newCard.Init(cardList[i]);
-                    newCard.gameObject.name = "YamaCard_" + i;
-                    Utils.AddChild(debugYama, newCard);
-                    debugYamaCardList.Add(newCard);
-                }
-                else
-                {
-                    var card = debugYamaCardList[i];
-                    card.Init(cardList[i]);
-                    card.SetActive(true);
-                }
-            }
-            for (int i = l; i < debugYamaCardList.Count; i++)
-            {
-                debugYamaCardList[i].SetActive(false);
-            }
+//            var l = Mathf.Min(30, cardList.Count);
+//            for (int i = 0; i < l; i++)
+//            {
+//                if (i >= debugYamaCardList.Count)
+//                {
+//                    var newCard = Instantiate(cardPrefab);
+//                    newCard.Init(cardList[i]);
+//                    newCard.gameObject.name = "YamaCard_" + i;
+//                    Utils.AddChild(debugYama, newCard);
+//                    debugYamaCardList.Add(newCard);
+//                }
+//                else
+//                {
+//                    var card = debugYamaCardList[i];
+//                    card.Init(cardList[i]);
+//                    card.SetActive(true);
+//                }
+//            }
+//            for (int i = l; i < debugYamaCardList.Count; i++)
+//            {
+//                debugYamaCardList[i].SetActive(false);
+//            }
         }
 
         public void SetDebugVisible(bool b)

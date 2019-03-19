@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using MyEvent;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.Networking;
 
 namespace WS
 {
-    public class FieldMap : MonoBehaviour
+    public class FieldMap : MonoBehaviour,IPointerDownHandler
     {
         public static FieldMap Instance { get; private set; }
 
@@ -16,16 +17,20 @@ namespace WS
 
         public Transform playerLayer { get; private set; }
         private Transform mapLayer;
-        private Transform mapLayerUp;
+        //private Transform mapLayerUp;
+        private Transform monsterLayer;
 
         private FieldMapDataManager mapDataManager;
         private int[][] currMapData;
 
+        private List<FieldObjectNpc> monsterList = new List<FieldObjectNpc>();
+
         void Awake()
         {
-            playerLayer = GameObject.Find("PlayerLayer").transform;
-            mapLayer = GameObject.Find("MapLayer").transform;
-            mapLayerUp = GameObject.Find("MapLayerUp").transform;
+            playerLayer = transform.Find("PlayerLayer").transform;
+            mapLayer = transform.Find("MapLayer").transform;
+            monsterLayer = transform.Find("MonsterLayer").transform;
+            //mapLayerUp = transform.Find("MapLayerUp").transform;
             mapDataManager = FieldMapDataManager.Instance;
             Instance = this;
         }
@@ -100,11 +105,93 @@ namespace WS
         }
 
 
-
+        private float monsterGenTime = 0f;
+        private int maxMonster = 1;
         // Update is called once per frame
         void Update()
         {
+            if (monsterList.Count < maxMonster)
+            {
+                monsterGenTime+=Time.deltaTime;
+                if (monsterGenTime > 1)
+                {
+                    GenerateMonster(1);
+                }
+            }
+        }
 
+        private void GenerateMonster(int id)
+        {
+            var rand = new System.Random();
+            var playerPos = PlayerManager.Instance.playerData.Position;
+            var r1 = rand.Next(100) / 100f + 0.5f;
+            var r2 = rand.Next(100) / 100f + 0.5f;
+            var r3 = rand.Next(100) / 2f + 200f;
+            var r4 = rand.Next(100) / 2f + 200f;
+            var newpos = new Vector2(playerPos.x + r1 * r3, playerPos.y + r2 * r4);
+            //Debug.Log(playerPos + " " + r1 + " " + r2 + " " + r3 + " " + newpos);
+            var prefab = Resources.Load<GameObject>("Prefab/FieldMonster");
+            var monster = Instantiate(prefab);
+            monster.name = "monster_" + this.monsterList.Count;
+            Utils.SetParent(monster.transform, this.monsterLayer);
+            var sc = monster.AddComponent<FieldMonster>();
+            sc.transform.localPosition = newpos;
+            sc.Init(id);
+            this.monsterList.Add(sc);
+        }
+
+        public void RemoveObject(FieldObject obj)
+        {
+            FieldPlayer.Instance.UnSelectObj(obj);
+            if (obj is FieldObjResource)
+            {
+                RemoveObject(obj as FieldObjResource);
+            }
+            else if(obj is FieldMonster)
+            {
+                RemoveObject(obj as FieldMonster);
+            }
+        }
+
+        private void RemoveObject(FieldMonster obj)
+        {
+            if (monsterList.Contains(obj))
+            {
+                monsterList.Remove(obj);
+                DestroyImmediate(obj.gameObject);
+            }
+            else
+            {
+                Debug.LogError("obj error");
+                return;
+            }
+        }
+        private void RemoveObject(FieldObjResource obj)
+        {
+            var x = obj.world_x;
+            var y = obj.world_y;
+            if (currMapData[x][y] != obj.data.intid)
+            {
+                Debug.LogError("obj error");
+                return;
+            }
+            currMapData[x][y] = 0;
+            DestroyImmediate(obj.gameObject);
+        }
+
+        public void OnPointerDown(PointerEventData eventData)
+        {
+            var id = eventData.pointerId;
+            if (id == -1)
+            {
+//                Debug.Log("mouse left");
+                MyEventSystem.SendEvent(new MyKeyEvent(MyKeyEvent.KEY_DOWN, KeyControl.M_LEFT));
+            }
+            else if (id == -2)
+            {
+//                Debug.Log("mouse right");
+                MyEventSystem.SendEvent(new MyKeyEvent(MyKeyEvent.KEY_DOWN, KeyControl.M_RIGHT));
+            }
         }
     }
 }

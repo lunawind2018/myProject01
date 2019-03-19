@@ -1,5 +1,5 @@
-﻿"id","name","desc","type1","type2","param1","param2","param3"
-1,"木"," 普通的树","res","wood",100,4,"48FF00"
-2,"石","普通的石头","res","stone",100,4,706054
-3,"铜","","res","copper",100,5,""
-4,"铁","","res","iron",100,6,""
+﻿"id","name","desc","color","type1","type2","param1","param2","param3"
+1,"木","普通的树","48FF00","res","wood",100,4,""
+2,"石","普通的石头",706054,"res","stone",100,4,""
+3,"铜","","","res","copper",100,5,""
+4,"铁","","","res","iron",100,6,""

@@ -54,5 +54,15 @@ namespace WS
                     break;
             }
         }
+
+        public virtual string GetDesc()
+        {
+            return string.Empty;
+        }
+
+        public virtual string GetHintName()
+        {
+            return string.Empty;
+        }
     }
 }

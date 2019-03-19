@@ -10,7 +10,7 @@ namespace WS
 
         private Vector3 lastpos;
 
-        private Camera camera;
+        public Camera camera { get; private set; }
 
         private float z;
 
@@ -67,8 +67,8 @@ namespace WS
             if (playerTrans.position == lastpos) return;
             var p = playerTrans.position;
             this.transform.position = new Vector3(p.x, p.y);
+            lastpos = p;
 
-   
         }
 
         public void Zoom(float v)

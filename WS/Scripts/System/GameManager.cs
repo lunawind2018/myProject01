@@ -36,6 +36,11 @@ namespace WS
 //            }
         }
 
+        void OnDestroy()
+        {
+            UnRegisterEvent();
+        }
+
         void Start()
         {
             StartCoroutine(InitGameManager());
@@ -64,8 +69,6 @@ namespace WS
         public PlayerManager playerManager { get; private set; }
         public MasterDataManager masterDataManager { get; private set; }
 
-
-
         private IEnumerator InitGameManager()
         {
             masterDataManager = MasterDataManager.Instance;
@@ -78,7 +81,7 @@ namespace WS
             saveDataManager = SaveDataManager.Instance;
             yield return StartCoroutine(saveDataManager.Init());
             //
-            playerManager.InitPlayer(saveDataManager.playerData);
+            playerManager.InitPlayer();
 
             commandManager = CommandManager.Instance;
             yield return 0;
@@ -88,12 +91,16 @@ namespace WS
         {
             MyEventSystem.RegistEvent(MyGameEvent.MAP_OK,OnMapOkHandler);
         }
+        private void UnRegisterEvent()
+        {
+            MyEventSystem.UnRegistEvent(MyGameEvent.MAP_OK, OnMapOkHandler);
+        }
 
         private void OnMapOkHandler(MyEvent.MyEvent obj)
         {
         }
 
-        public void SendCommand(CommandType command, Hashtable param, System.Action callback )
+        public void SendCommand(CommandType command, object param, System.Action<bool> callback )
         {
             StartCoroutine(commandManager.DoCommand(command, param, callback));
         }

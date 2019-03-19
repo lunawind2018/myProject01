@@ -12,6 +12,13 @@ namespace WS
         public const string LEFT = "LEFT";
         public const string RIGHT = "RIGHT";
         public const string INTERACT = "INTERACT";
+        public const string TAB = "TAB";
+        public const string BAG = "BAG";
+        public const string ESC = "ESC";
+        public const string CRAFT = "CRAFT";
+        public const string CHARACTER = "CHARACTER";
+        public const string M_LEFT = "M_LEFT";
+        public const string M_RIGHT = "M_RIGHT";
 
         public static Dictionary<string, KeyCode[]> keyDic = new Dictionary<string, KeyCode[]>()
     {
@@ -20,6 +27,12 @@ namespace WS
         {LEFT,new []{KeyCode.A, KeyCode.LeftArrow}},
         {RIGHT,new []{KeyCode.D, KeyCode.RightArrow}},
         {INTERACT,new []{KeyCode.E, KeyCode.None}},
+        {TAB,new []{KeyCode.Tab, KeyCode.None}},
+        {BAG,new []{KeyCode.B, KeyCode.None}},
+        {ESC,new []{KeyCode.Escape, KeyCode.None}},
+        {CRAFT,new []{KeyCode.O,KeyCode.None}},
+        {CHARACTER,new []{KeyCode.C,KeyCode.None}},
+
     };
 
         public static Dictionary<KeyCode, string> reverseDic = new Dictionary<KeyCode, string>();
@@ -47,6 +60,7 @@ namespace WS
                 var arr = keyValuePair.Value;
                 foreach (var code in arr)
                 {
+                    if (code == KeyCode.None) continue;
                     reverseDic.Add(code, keyValuePair.Key);
                     keyDownDic.Add(code, false);
                     keyList.Add(code);
@@ -72,6 +86,16 @@ namespace WS
                     }
                 }
             }
+//            if (Input.GetMouseButtonDown(0))
+//            {
+//                //Debug.Log("mouse left");
+//                MyEventSystem.SendEvent(new MyKeyEvent(MyKeyEvent.KEY_DOWN, M_LEFT));
+//            }
+//            if (Input.GetMouseButtonDown(1))
+//            {
+//                //Debug.Log("mouse right");
+//                MyEventSystem.SendEvent(new MyKeyEvent(MyKeyEvent.KEY_DOWN, M_RIGHT));
+//            }
         }
 
         void OnGUI()

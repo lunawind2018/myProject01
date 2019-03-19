@@ -13,6 +13,8 @@ namespace WS
         protected CircleCollider2D coll;
         protected GameObject body;
 
+        public int world_x = 0;
+        public int world_y = 0;
 
         protected virtual void Awake()
         {
@@ -21,16 +23,15 @@ namespace WS
             coll = body.GetComponent<CircleCollider2D>();
         }
 
-        public void SetRotation(Quaternion r)
+        public void SetName(string t, string color = null)
         {
-            body.transform.localRotation = r;
-        }
+            this.nameTxt.text = t;
+            if (!string.IsNullOrEmpty(color))
+            {
+                this.nameTxt.color = Utils.GetColor(color);
+            }
 
-        public void SetRotation(Vector3 a)
-        {
-            body.transform.eulerAngles = a;
         }
-
         public void SetScale(float s = 1)
         {
             body.transform.localScale = new Vector3(s, s, s);

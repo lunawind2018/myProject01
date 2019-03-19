@@ -2,7 +2,7 @@
 {
     public enum CommandType
     {
-        None,
         Collect,
+        Craft,
     }
 }

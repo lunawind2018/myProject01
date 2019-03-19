@@ -1,0 +1,8 @@
+﻿E:/work/translate/New Unity Project/Assets/myProject01/trunk/WS/Csv\collect.xlsx,2D12DE34783CC01A478737E53879630A
+E:/work/translate/New Unity Project/Assets/myProject01/trunk/WS/Csv\const_text.xlsx,73E03603CA3E0040296704DC40E7EAD9
+E:/work/translate/New Unity Project/Assets/myProject01/trunk/WS/Csv\craft.xlsx,FB13ACC73CBE8F371AAEA0E20FDCB08A
+E:/work/translate/New Unity Project/Assets/myProject01/trunk/WS/Csv\field_object.xlsx,63CE38D86C6EA7FDC3ECA1541C8D3938
+E:/work/translate/New Unity Project/Assets/myProject01/trunk/WS/Csv\item.xlsx,9429BAED0E5EEF45AAFBFCB938C0F7F7
+E:/work/translate/New Unity Project/Assets/myProject01/trunk/WS/Csv\effect.xlsx,CB925ED7414B5F276145C720378DDBD8
+E:/work/translate/New Unity Project/Assets/myProject01/trunk/WS/Csv\skill.xlsx,86DECE9A2507FB52524BE8AF95353ADC
+E:/work/translate/New Unity Project/Assets/myProject01/trunk/WS/Csv\monster.xlsx,A6255DA38CC50EB8E42E11BE20FF237D

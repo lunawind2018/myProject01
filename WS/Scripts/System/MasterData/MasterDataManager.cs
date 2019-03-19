@@ -11,10 +11,29 @@ namespace WS
         public static MasterDataManager Instance;
 
         [SerializeField]
-        private TextAsset field_object;
+        private TextAsset data_field_object;
+        [SerializeField]
+        private TextAsset data_collect;
+        [SerializeField]
+        private TextAsset data_item;
+        [SerializeField]
+        private TextAsset data_const_text;
+        [SerializeField]
+        private TextAsset data_craft;
+        [SerializeField]
+        private TextAsset data_skill;
+        [SerializeField]
+        private TextAsset data_monster;
 
-        [HideInInspector]
-        public Dictionary<int, MasterDataFieldObject> masterDataFieldObjectDic = new Dictionary<int, MasterDataFieldObject>();
+
+        public static MasterDataTable<MasterDataFieldObject> FieldObject = new MasterDataTable<MasterDataFieldObject>();
+        public static MasterDataCollectTable Collect = new MasterDataCollectTable();
+        public static MasterDataTable<MasterDataItem> Item = new MasterDataTable<MasterDataItem>();
+        public static MasterDataTable<MasterDataConstText> ConstText = new MasterDataTable<MasterDataConstText>();
+        public static MasterDataTable<MasterDataCraft> Craft = new MasterDataTable<MasterDataCraft>();
+        public static MasterDataTable<MasterDataSkill> Skill = new MasterDataTable<MasterDataSkill>();
+        public static MasterDataTable<MasterDataMonster> Monster = new MasterDataTable<MasterDataMonster>();
+
 
         public Dictionary<GameObject, string> testdic = new Dictionary<GameObject, string>();
 
@@ -32,34 +51,15 @@ namespace WS
 
         public IEnumerator Init()
         {
-            ReadCsv(field_object, masterDataFieldObjectDic);
+            FieldObject.Init(data_field_object);
+            Collect.Init(data_collect);
+            Item.Init(data_item);
+            ConstText.Init(data_const_text);
+            Craft.Init(data_craft);
+            Skill.Init(data_skill);
+            Monster.Init(data_monster);
             yield return 0;
         }
 
-        private void ReadCsv<T>(TextAsset t, Dictionary<int, T> dic) where T : MasterDataBase, new()
-        {
-            var str = t.text;
-            var arr = Utils.ConvertCSV(str);
-            for (int i = 0; i < arr.Count; i++)
-            {
-#if UNITY_EDITOR
-                try
-                {
-#endif
-                    var strs = (string[])(((ArrayList)arr[i]).ToArray(typeof(string)));
-                    T tt = new T();
-                    tt.Init(strs);
-                    var id = tt.id;
-                    dic.Add(id, tt);
-#if UNITY_EDITOR
-                }
-                catch (Exception e)
-                {
-                    Debug.LogError("parse error " + i + " " + e.Message);
-                    throw;
-                }
-#endif
-            }
-        }
     }
 }

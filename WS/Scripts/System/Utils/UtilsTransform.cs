@@ -279,5 +279,11 @@ namespace WS
 #endregion
         //==================================================
 
+        public static void SetWidth(RectTransform btnCraftTrans, float f)
+        {
+            var v2 = btnCraftTrans.sizeDelta;
+            v2.x = f;
+            btnCraftTrans.sizeDelta = v2;
+        }
     }
 }

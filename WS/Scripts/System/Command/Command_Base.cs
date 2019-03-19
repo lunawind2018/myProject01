@@ -8,6 +8,6 @@ namespace WS
     {
         public static int ShowLog =1;
 
-        public abstract IEnumerator DoCommand(Hashtable param);
+        public abstract IEnumerator DoCommand(object param);
     }
 }

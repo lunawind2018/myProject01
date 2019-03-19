@@ -6,35 +6,24 @@ namespace WS
 {
     public class FieldObjResource : FieldObjWithCircle
     {
-        public bool test = false;
-        public int testid = 1;
-
-        public int world_x = 0;
-        public int world_y = 0;
-
         public MasterDataFieldObject data { get; private set; }
-
-        protected override void Awake()
-        {
-            base.Awake();
-        }
-
-        void Start()
-        {
-            if (test)
-            {
-                Init(testid);
-            }
-        }
 
         public void Init(int id)
         {
-            this.data = MasterDataManager.Instance.masterDataFieldObjectDic[id];
-            this.nameTxt.text = data.name;
-            if (!string.IsNullOrEmpty(data.param3))
-            {
-                this.nameTxt.color = Utils.GetColor(data.param3);
-            }
+            this.data = MasterDataManager.FieldObject.GetData(id);
+            this.SetName(data.name,data.color);
+        }
+
+        public override string GetHintName()
+        {
+            if (string.IsNullOrEmpty(data.color)) return data.name;
+            var str = "<color=#{0}>{1}</color>";
+            return string.Format(str, data.color, data.name);
+        }
+
+        public override string GetDesc()
+        {
+            return this.data.desc;
         }
     }
 }

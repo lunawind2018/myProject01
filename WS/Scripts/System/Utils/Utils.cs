@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using System.Text.RegularExpressions;
+using MyEvent;
 using UnityEngine;
 
 namespace WS
@@ -26,6 +28,18 @@ namespace WS
             return dic.ContainsKey(key) ? dic[key] : def;
         }
 
+        public static void SafeAdd<T, K>(Dictionary<T, K> dic, T k, K v)
+        {
+            if (dic.ContainsKey(k))
+            {
+                dic[k] = v;
+            }
+            else
+            {
+                dic.Add(k, v);
+            }
+        }
+
         enum CSVParserState
         {
             Begin,
@@ -34,7 +48,7 @@ namespace WS
             End,
         }
 
-        public static ArrayList ConvertCSV(string csvText, bool removeTitle = true)
+        public static ArrayList ConvertCSV(string csvText, bool removeTitle = false)
         {
             int len = csvText.Length;
             int begin = 0;
@@ -326,6 +340,62 @@ namespace WS
             colorDic.Add(colorstr, color);
             return color;
         }
-        
+
+        public static Hashtable DicToHash<T,K>(Dictionary<T, K> dic)
+        {
+            var hash = new Hashtable();
+            foreach (var kvp in dic)
+            {
+                hash.Add(kvp.Key,kvp.Value);
+            }
+            return hash;
+        }
+
+        public static Dictionary<T, K> HashToDic<T, K>(Hashtable hash)
+        {
+            var dic = new Dictionary<T, K>();
+            foreach (var k in hash.Keys)
+            {
+                dic.Add((T)k, (K)hash[k]);
+            }
+            return dic;
+        }
+
+
+        public static string GetItemString(List<SingleItemData> items)
+        {
+            var sb = new StringBuilder();
+            var l = items.Count;
+            for (int i = 0; i < l; i++)
+            {
+                var name = MasterDataManager.Item.GetData(items[i].id).name;
+                sb.Append(name);
+                sb.Append("x");
+                sb.Append(items[i].num);
+                if (i != l - 1) sb.Append(", ");
+            }
+            return sb.ToString();
+        }
+
+        public static List<SingleItemData> ParseItemData(string itemStr)
+        {
+            var result = new List<SingleItemData>();
+            var items = itemStr.Split(';');
+            for (int i = 0; i < items.Length; i++)
+            {
+                var ss = items[i];
+                var sarr = ss.Split(':');
+                var item = sarr[0];
+                var num = sarr.Length > 1 ? int.Parse(sarr[1]) : 0;
+                result.Add(new SingleItemData(item, num));
+            }
+            return result;
+        }
+
+        public static void GlobalMessage(object msg)
+        {
+            MyEventSystem.SendEvent(new MyGameEvent(MyGameEvent.GLOBAL_MESSAGE, msg));
+        }
+
     }
 }

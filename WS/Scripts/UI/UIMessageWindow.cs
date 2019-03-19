@@ -32,10 +32,10 @@ namespace WS
         {
         }
 
-        public void AddText(string ttt)
+        public void AddText(string t)
         {
             var message = Instantiate(messagePrefab);
-            message.SetText(ttt);
+            message.SetText(t);
             messageList.Add(message);
             Utils.SetParent(message.transform, scrollRect.content);
 

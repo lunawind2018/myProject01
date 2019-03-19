@@ -5,6 +5,6 @@
         None =0,
         Wood =1,
         Stone =2,
-
+        Copper =3,
     }
 }
